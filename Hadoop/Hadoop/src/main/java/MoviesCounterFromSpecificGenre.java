@@ -1,12 +1,12 @@
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.jute.compiler.JFile;
 
 import java.io.IOException;
 
@@ -22,7 +22,7 @@ public class MoviesCounterFromSpecificGenre {
                 String[] otherAndGenre = value.toString().split("\",");
                 String genres = otherAndGenre[otherAndGenre.length - 1];
                 String[] genresArray = genres.split("\\|");
-                for (String genre : genresArray) {context.write(new Text(filmName), new Text(genre));}
+                for (String genre : genresArray) {context.write(new Text(genre), new Text(filmName));}
             }
             else{
                 String[] classicSplit = value.toString().split(",");
