@@ -37,3 +37,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+
+### EDU FILES ###
+labs_ressources/ml-25m
+labs_ressources/input
