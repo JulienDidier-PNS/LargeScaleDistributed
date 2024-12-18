@@ -59,7 +59,7 @@ public class MoviesCounterFromSpecificGenre {
 
         job.setJarByClass(MoviesCounterFromSpecificGenre.class);
         job.setMapperClass(MoviesCounterFromSpecificGenreMapper.class);
-        job.setCombinerClass(MoviesCounterFromSpecificGenreReducer.class);
+        job.setReducerClass(MoviesCounterFromSpecificGenreReducer.class);
 
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
