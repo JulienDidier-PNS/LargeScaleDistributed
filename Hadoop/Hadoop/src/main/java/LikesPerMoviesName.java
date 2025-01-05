@@ -17,7 +17,8 @@ import java.util.HashMap;
 
 public class LikesPerMoviesName {
 
-    //STEP 1 : Extract most rated movies per user
+    //JOB 1
+    //Extract most rated movies per user
     public static class TopRatedMoviesMapper extends Mapper<LongWritable, Text, IntWritable, Text> {
         @Override
         protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -27,16 +28,19 @@ public class LikesPerMoviesName {
             String movieId = fields[1];
             double rating = Double.parseDouble(fields[2]);
 
+            //keep only the movies with a rating of 5
+            //OUTPUT : userId, movieId
             if (rating == 5.0) {
                 context.write(new IntWritable(userId), new Text(movieId));
             }
         }
     }
 
-    //CHoose only one film per user
+    //Choose only one film per user
     public static class TopRatedMoviesReducer extends Reducer<IntWritable, Text, IntWritable, Text> {
         @Override
         protected void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            //Keep the first of the list
             for (Text movie : values) {
                 context.write(key, movie);
                 break;
@@ -44,6 +48,7 @@ public class LikesPerMoviesName {
         }
     }
 
+    //JOB 2
     //Add one when a movie appear
     public static class MovieCountMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
@@ -52,6 +57,7 @@ public class LikesPerMoviesName {
         protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String[] fields = value.toString().split("\t");
             String movieId = fields[1];
+            //OUTPUT : movieId, 1
             context.write(new Text(movieId), one);
         }
     }
@@ -64,6 +70,7 @@ public class LikesPerMoviesName {
             for (IntWritable val : values) {
                 sum += val.get();
             }
+            //OUTPUT : movieId, sum
             context.write(key, new IntWritable(sum));
         }
     }
@@ -75,13 +82,16 @@ public class LikesPerMoviesName {
             String[] fields = value.toString().split("\t");
             String movieId = fields[0];
             int count = Integer.parseInt(fields[1]);
+            //OUTPUT : sum, movieId
             context.write(new IntWritable(count), new Text(movieId));
         }
     }
 
+    //JOB3
     //Add the films with the same number of likes on the same line
     public static class SortReducer extends Reducer<IntWritable, Text, IntWritable, Text> {
         private final HashMap<String, String> movieIdToName = new HashMap<>();
+        //The setup will run before the reduce; it will load the movie file in the cache
         @Override
         protected void setup(Context context) throws IOException {
             URI[] cacheFiles = context.getCacheFiles();
@@ -104,6 +114,10 @@ public class LikesPerMoviesName {
                 reader.close();
             }
         }
+
+        //The final step, we will write the movies with the same number of likes on the same line
+        //OUTPUT : sum, movieName1 movieName2 ...
+        //by default, the movies are sorted by the number of likes (ascending)
         @Override
         protected void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             StringBuilder movies = new StringBuilder();
@@ -116,6 +130,8 @@ public class LikesPerMoviesName {
             context.write(key, new Text(movies.toString()));
         }
     }
+
+    //the main function will run the 3 jobs
     public static void main(String[] args) throws Exception {
         if (args.length != 3) {
             System.err.println("Usage: LikesPerMoviesName <ratings_path> <movies_path> <output_path>");
@@ -137,7 +153,7 @@ public class LikesPerMoviesName {
         Path intermediate2Path = new Path(intermediate2);
 
 
-        // Job 1: Extract top-rated movies per user
+        // Job 1: Extraction of the most rated movies per user
         Configuration conf1 = new Configuration();
         Job job1 = Job.getInstance(conf1, "Top Rated Movies");
         job1.setJarByClass(LikesPerMoviesName.class);
@@ -147,6 +163,7 @@ public class LikesPerMoviesName {
         job1.setOutputValueClass(Text.class);
 
         FileInputFormat.addInputPath(job1, ratingsPath);
+        //use intermediate path to store the output of the first job
         FileOutputFormat.setOutputPath(job1, intermediate1Path);
 
         if (!job1.waitForCompletion(true)) {
@@ -162,14 +179,16 @@ public class LikesPerMoviesName {
         job2.setOutputKeyClass(Text.class);
         job2.setOutputValueClass(IntWritable.class);
 
+        //use the previous intermediate path as input
         FileInputFormat.addInputPath(job2, intermediate1Path);
+        //use the second intermediate path to store the output of the second job
         FileOutputFormat.setOutputPath(job2, intermediate2Path);
 
         if (!job2.waitForCompletion(true)) {
             System.exit(1);
         }
 
-        // Job 3: Sort movies by popularity
+        //Job 3: Sort movies by popularity and output the film names
         Configuration conf3 = new Configuration();
         Job job3 = Job.getInstance(conf3, "Sort Movies by Popularity");
         //Add the movies file to the cache to compute it in the setup
@@ -182,7 +201,9 @@ public class LikesPerMoviesName {
         job3.setOutputKeyClass(IntWritable.class);
         job3.setOutputValueClass(Text.class);
 
+        //use the previous intermediate path as input
         FileInputFormat.addInputPath(job3, intermediate2Path);
+        //use the final output path to store the output of the third job
         FileOutputFormat.setOutputPath(job3, outputPath);
 
         if (!job3.waitForCompletion(true)) {
