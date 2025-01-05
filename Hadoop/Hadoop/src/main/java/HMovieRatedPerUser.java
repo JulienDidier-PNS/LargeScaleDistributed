@@ -17,10 +17,10 @@ public class HMovieRatedPerUser {
         protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             String[] informations = value.toString().split(",");
             if (informations[0].equals("userId")) {return;}
-            String movieId = informations[1];
             String score = informations[2];
+            String movieId = informations[1];
             String userId = informations[0];
-            context.write(new Text(userId), new Text(movieId + "," + score));
+            context.write(new Text(movieId), new Text(userId+","+movieId+","+score));
         }
     }
 
@@ -31,12 +31,14 @@ public class HMovieRatedPerUser {
             String toKeep = "";
             for(Text keyVal : values){
                 String[] informations = keyVal.toString().split(",");
-                String scoreSTR = informations[1];
+                String userId = informations[0];
+                String movieId = informations[1];
+                String scoreSTR = informations[2];
                 if (scoreSTR != null) {
                     double score = Double.parseDouble(scoreSTR);
                     if (score > highestScore) {
                         highestScore = score;
-                        toKeep = keyVal.toString();
+                        toKeep = userId;
                     }
                 }
             }

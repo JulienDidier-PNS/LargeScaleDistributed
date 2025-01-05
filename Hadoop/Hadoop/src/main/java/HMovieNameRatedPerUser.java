@@ -1,6 +1,5 @@
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -14,8 +13,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 
-public class HMovieRatedPerUserV2 {
-    public static class HMovieRatedPerUserV2Mapper extends Mapper<Object, Text, Text, Text> {
+public class HMovieNameRatedPerUser {
+    public static class HMovieNameRatedPerUserMapper extends Mapper<Object, Text, Text, Text> {
         @Override
         protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             String[] informations = value.toString().split(",");
@@ -27,7 +26,7 @@ public class HMovieRatedPerUserV2 {
         }
     }
 
-    public static class HMovieRatedPerUserV2Reducer extends Reducer<Text, Text, Text, Text> {
+    public static class HMovieNameRatedPerUserReducer extends Reducer<Text, Text, Text, Text> {
         private final HashMap<String, String> movieIdToName = new HashMap<>();
         @Override
         protected void setup(Context context) throws IOException {
@@ -73,7 +72,7 @@ public class HMovieRatedPerUserV2 {
 
     public static void main(String[] args) throws Exception{
         if (args.length != 3) {
-            System.err.println("Usage: HMovieRatedPerUserV2 <ratings> <movies> <output path>");
+            System.err.println("Usage: HMovieNameRatedPerUser <ratings> <movies> <output path>");
             System.exit(-1);
         }
 
@@ -87,8 +86,8 @@ public class HMovieRatedPerUserV2 {
         job.addCacheFile(new Path(moviesPath).toUri());
 
         job.setJarByClass(HMovieRatedPerUser.class);
-        job.setMapperClass(HMovieRatedPerUserV2Mapper.class);
-        job.setReducerClass(HMovieRatedPerUserV2Reducer.class);
+        job.setMapperClass(HMovieNameRatedPerUserMapper.class);
+        job.setReducerClass(HMovieNameRatedPerUserReducer.class);
 
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
