@@ -29,10 +29,8 @@ public class LikesPerMoviesName {
             double rating = Double.parseDouble(fields[2]);
 
             //keep only the movies with a rating of 5
-            //OUTPUT : userId, movieId
-            if (rating == 5.0) {
-                context.write(new IntWritable(userId), new Text(movieId));
-            }
+            //OUTPUT : userId, movieI
+            context.write(new IntWritable(userId), new Text(movieId+"/"+rating));
         }
     }
 
@@ -40,11 +38,23 @@ public class LikesPerMoviesName {
     public static class TopRatedMoviesReducer extends Reducer<IntWritable, Text, IntWritable, Text> {
         @Override
         protected void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-            //Keep the first of the list
+            //Keep the highest rating per users
+            double maxRating = Double.MIN_VALUE;
+            String movieIdToWrite = "";
             for (Text movie : values) {
-                context.write(key, movie);
-                break;
+                String[] fields = movie.toString().split("/");
+                String movieId = fields[0];
+                double rating = Double.parseDouble(fields[1]);
+
+                if (rating > maxRating) {
+                    maxRating = rating;
+                    movieIdToWrite = movieId;
+                    //We can stop the loop if we find a rating of 5 (the maximum)
+                    if (maxRating == 5) {break;}
+                }
             }
+            //OUTPUT : userId, movieId (only one per user -> if we found a 5, we stop the loop // if not, we keep the previous highest rating)
+            context.write(key, new Text(movieIdToWrite));
         }
     }
 
