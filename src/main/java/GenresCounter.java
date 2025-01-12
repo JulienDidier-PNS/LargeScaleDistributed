@@ -15,6 +15,7 @@ public class GenresCounter {
     public static class MovieMapper extends Mapper<Object, Text, Text, LongWritable> {
         @Override
         protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+            if(value.toString().contains("genre")){return;}
             //movieId,title,genres
             if (value.toString().contains("\",")) {
                 String[] otherAndGenre = value.toString().split("\",");
@@ -42,7 +43,7 @@ public class GenresCounter {
 
     public static void main(String[] args) throws Exception{
         if (args.length != 2) {
-            System.err.println("Usage: moviemapper <input path> <output path>");
+            System.err.println("Usage: moviemapper <movies> <output path>");
             System.exit(-1);
         }
 

@@ -46,7 +46,7 @@ public class MoviesCounterFromSpecificGenre {
 
     public static void main(String[] args) throws Exception{
         if (args.length != 3) {
-            System.err.println("Usage: MoviesCounterFromSpecificGenre <input path> <output path> <genre>");
+            System.err.println("Usage: MoviesCounterFromSpecificGenre <movies> <output path> <genre>");
             System.exit(-1);
         }
 

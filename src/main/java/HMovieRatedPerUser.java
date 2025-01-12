@@ -48,7 +48,7 @@ public class HMovieRatedPerUser {
 
     public static void main(String[] args) throws Exception{
         if (args.length != 2) {
-            System.err.println("Usage: HMovieRatedPerUser <input path> <output path>");
+            System.err.println("Usage: HMovieRatedPerUser <ratings> <output path>");
             System.exit(-1);
         }
 
